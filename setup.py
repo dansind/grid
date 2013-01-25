@@ -8,7 +8,7 @@ config = {
     'long_description': open('README.txt').read(),
     'author': 'Daniel J. Sindhikara',
     'url':'www.dansindhikara.com',
-    # 'download_url':'Where to download it.',
+    'download_url': 'https://github.com/dansind/grid/tarball/master',
     'author_email': 'sindhikara@gmail.com',
     'version': '0.1',
     'install_requires': ['numpy'], #
