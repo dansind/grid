@@ -216,9 +216,14 @@ def readdx(filenames):
         dxfile.close()
         splittext = dxtext.split()
         del splittext[0:splittext.index('follows') + 1]  # get rid of header text, last word is "follows"
-        del splittext[-4:-1]
-        del splittext[-1]  # dont know why i cant just use a 0 instead of -1 above
-        floats = [float(element) for element in splittext]
+        floats = []
+        for element in splittext:
+            if len(element) > 0:
+                try:
+                    floats.append(float(element))
+                except ValueError:
+                    pass
+        assert len(floats) == gridcount[0]*gridcount[1]*gridcount[2]
         index = 0
         for x in range(gridcount[0]):
             for y in range(gridcount[1]):
@@ -437,11 +442,11 @@ precomputation of weights and indices
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
     totalweight = 0.0
     weights = []
-    exactindex = 0
+    exactindex = -1
     for (i, crd) in enumerate(ccrd):
         if crd == coord:
-            exactindex = 1
-    if exactindex:
+            exactindex = i
+    if exactindex > -1:
         weights = [0.0 for i in range(8)]
         weights[exactindex] = 1.0
         totalweight = 1.0

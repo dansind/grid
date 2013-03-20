@@ -7,10 +7,10 @@ config = {
     'description': 'Volumetric data module',
     'long_description': open('README.txt').read(),
     'author': 'Daniel J. Sindhikara',
-    'url':'www.dansindhikara.com',
-    'download_url': 'https://github.com/dansind/grid/tarball/master',
+    #'url':'https://github.com/dansind/grid',
+    #'download_url': 'https://github.com/dansind/grid/tarball/master',
     'author_email': 'sindhikara@gmail.com',
-    'version': '0.1',
+    'version': '0.1.2',
     'install_requires': ['numpy'], #
     #'py_modules': ['grid'], 
     'packages': ["grid","grid.tests"],
