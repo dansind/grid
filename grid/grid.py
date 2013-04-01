@@ -95,7 +95,7 @@ Contains volumetric data
 
         spherefilename = \
             os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                         'points', '23.pts')
+                         'data', 'points', '200.pts')
         spherepoints = [[float(element) for element in line.split()]
                         for line in open(spherefilename).readlines()]
         rdf = []
