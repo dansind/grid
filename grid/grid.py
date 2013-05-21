@@ -1,5 +1,12 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
+# <nbformat>3.0</nbformat>
+
+# <codecell>
+
+
+# <codecell>
+
+#!/usr/bin/python
 
 '''
 Daniel J. Sindhikara
@@ -12,6 +19,7 @@ from __future__ import division
 import numpy as np
 import os
 
+# <codecell>
 
 class Grid:
 
@@ -36,7 +44,7 @@ Contains volumetric data
         self.deltas = deltas
         self.concentration = concentration  # in molar
 
-    def getvalue(self, coord):
+    def getvalue(self, coord): 
         return linearinterpolatevalue(self.distribution, self.origin,
                 self.deltas, coord)
 
@@ -107,6 +115,7 @@ Contains volumetric data
             rdf.append(float(mysum / len(spherepoints)))
         return rdf
 
+# <codecell>
 
 def rdf23dgrid(
     rdf,
@@ -136,6 +145,7 @@ def rdf23dgrid(
             mydist[distindex] = myrdf
     return Grid(mydist, gridorigin, gridcount, [griddelta] * 3)
 
+# <codecell>
 
 def dx2Grid(dxfilename):
     '''
@@ -147,6 +157,7 @@ def dx2Grid(dxfilename):
     (distributions, origin, deltas, gridcount) = readdx([dxfilename])
     return Grid(distributions[0], origin, gridcount, deltas)
 
+# <codecell>
 
 def readdx(filenames):
     '''
@@ -236,6 +247,7 @@ def readdx(filenames):
 
     return (distributions, origin, deltas, gridcount)
 
+# <codecell>
 
 def printdxfrom1dzfast(
     values,
@@ -264,6 +276,7 @@ def printdxfrom1dzfast(
     f.write('object {0} class field\n'.format(filename))
     f.close()
 
+# <codecell>
 
 def printdx(
     values,
@@ -302,6 +315,7 @@ def printdx(
     f.write('object {0} class field\n'.format(filename))
     f.close()
 
+# <codecell>
 
 def printdxfrom3d(
     distribution,
@@ -332,6 +346,7 @@ def printdxfrom3d(
     f.write('object {0} class field\n'.format(filename))
     f.close()
 
+# <codecell>
 
 def getcoordfromindices(indices, origin, deltas):
     '''Returns coordinates as a length 3 list of floats 
@@ -342,6 +357,7 @@ def getcoordfromindices(indices, origin, deltas):
         coords.append(float(indices[i]) * deltas[i] + origin[i])
     return coords
 
+# <codecell>
 
 def getindicesfromcoord(coord, origin, deltas):
     indices = []
@@ -349,6 +365,7 @@ def getindicesfromcoord(coord, origin, deltas):
         indices.append(int((coord[i] - origin[i]) / deltas[i] + 0.5))
     return indices
 
+# <codecell>
 
 def precomputeshellindices(maxindex):
     '''return a list of 3d lists containing the indices in successive search shells
@@ -377,6 +394,7 @@ at index radius
         shellindices.append(tuple(indicesinthisshell))
     return tuple(shellindices)
 
+# <codecell>
 
 def createprecomputedindicesjson(numshells=40):
     '''
@@ -391,6 +409,7 @@ stores a local file called shells.json
     dump(shellindices, f)
     f.close()
 
+# <codecell>
 
 def readshellindices():
     import os
@@ -400,6 +419,7 @@ def readshellindices():
     shellindices = load(f)
     return shellindices
 
+# <codecell>
 
 def getlinearweightsandindices(origin, deltas, coord):
     '''
@@ -459,6 +479,7 @@ precomputation of weights and indices
     normweights = [weight / totalweight for weight in weights]
     return (normweights, cindices)
 
+# <codecell>
 
 def linearinterpolatevalue(
     distribution,
@@ -479,8 +500,10 @@ estimate the value at that coordinate
         except:
             print 'Failed to find gridpoint at', mycindices
             print 'coordinate=', coord
+            return False
     return value
 
+# <codecell>
 
 def calcrdf(
     distribution,
@@ -523,5 +546,13 @@ Calculates the radial distribution function about a point using the 3d distribut
         gr.append(shellintegral(rad, subdelta, coord))
 
     return (radii, gr)
+
+# <codecell>
+
+
+
+
+
+# <codecell>
 
 

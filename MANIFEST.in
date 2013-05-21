@@ -1,5 +1,7 @@
 include *.txt
 recursive-include docs *.txt
 recursive-include grid/data *.json
+recursive-include grid/data/points *
 recursive-include grid/tests/data/ *
 recursive-include grid/tests/data/dxfiles/ *
+recursive-include bin *

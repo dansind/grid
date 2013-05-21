@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import grid.grid as grid
 import sys
 print "# Input format: RDFfromDX.py <dxfilename> <x> <y> <z> <delta> <max>"

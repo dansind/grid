@@ -1,4 +1,18 @@
+# Note to self:
+# After changes: 
+   setup appropriate test in grid/grid_test.py
+   modify CHANGES.txt, setup.py; git add commit, push; pip setup.py upload
+
+
+May 21, 2013
+0.1.6
+  Converted to ipython notebook for fast debugging.
+  Now returns False value whenever linearinterpolatevalue() fails.
+
+
 April 1, 2013
+0.1.5
+  Forgot to add bin/ directory
 0.1.4
   Added RDFfromDX.py script
 0.1.3
