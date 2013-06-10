@@ -349,13 +349,11 @@ def printdxfrom3d(
 # <codecell>
 
 def getcoordfromindices(indices, origin, deltas):
-    '''Returns coordinates as a length 3 list of floats 
     '''
-
-    coords = []
-    for i in range(3):
-        coords.append(float(indices[i]) * deltas[i] + origin[i])
-    return coords
+Returns coordinates as a length 3 list of floats.
+# Optimization on June 10, 2013
+    '''
+    return [float(indices[i]) * deltas[i] + origin[i] for i in range(3)]
 
 # <codecell>
 
@@ -423,10 +421,13 @@ def readshellindices():
 
 def getlinearweightsandindices(origin, deltas, coord):
     '''
-given one 3D coordinate, return 8 corner indices and weights
+Given one 3D coordinate, return 8 corner indices and weights
 that would allow direct linear interpolation
 This subroutine is separated from linearinterpolatevalue to allow
-precomputation of weights and indices
+precomputation of weights and indices.
+
+
+Some optimization done June 10
     '''
 
     ccrd = []  # coordinates of corners
@@ -438,27 +439,29 @@ precomputation of weights and indices
     cindices.append((int((coord[0] - origin[0]) / deltas[0]),
                     int((coord[1] - origin[1]) / deltas[1]),
                     int((coord[2] - origin[2]) / deltas[0])))
+    ci0,ci1,ci2 = cindices[0] #To reduce future index lookups.
+    
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((cindices[0][0] + 1, cindices[0][1],
-                    cindices[0][2]))
+    cindices.append((ci0 + 1, ci1,
+                    ci2))
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((cindices[0][0], cindices[0][1] + 1,
-                    cindices[0][2]))
+    cindices.append((ci0, ci1 + 1,
+                    ci2))
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((cindices[0][0], cindices[0][1], cindices[0][2]
+    cindices.append((ci0, ci1, ci2
                     + 1))
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((cindices[0][0] + 1, cindices[0][1] + 1,
-                    cindices[0][2]))
+    cindices.append((ci0 + 1, ci1 + 1,
+                    ci2))
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((cindices[0][0], cindices[0][1], cindices[0][2]
+    cindices.append((ci0, ci1, ci2
                     + 1))
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((cindices[0][0] + 1, cindices[0][1], cindices[0][2]
+    cindices.append((ci0 + 1, ci1, ci2
                     + 1))
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((cindices[0][0] + 1, cindices[0][1] + 1,
-                    cindices[0][2] + 1))
+    cindices.append((ci0 + 1, ci1 + 1,
+                    ci2 + 1))
     ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
     totalweight = 0.0
     weights = []
@@ -505,6 +508,10 @@ estimate the value at that coordinate
 
 # <codecell>
 
+%timeit mygrid.getvalue([1.0,1.0,1.0]) # Using sumbased approach. Original was ~60 us
+
+# <codecell>
+
 def calcrdf(
     distribution,
     origin,
@@ -546,13 +553,4 @@ Calculates the radial distribution function about a point using the 3d distribut
         gr.append(shellintegral(rad, subdelta, coord))
 
     return (radii, gr)
-
-# <codecell>
-
-
-
-
-
-# <codecell>
-
 
