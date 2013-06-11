@@ -21,6 +21,13 @@ import os
 
 # <codecell>
 
+#import sys
+#isnotebook ='py' not in sys.argv[0]
+#if isnotebook: 
+#    print "Running as IPython notebook"
+
+# <codecell>
+
 class Grid:
 
     '''
@@ -426,60 +433,52 @@ that would allow direct linear interpolation
 This subroutine is separated from linearinterpolatevalue to allow
 precomputation of weights and indices.
 
+This is using the formula for Trilinear interpolation
 
 Some optimization done June 10
     '''
 
-    ccrd = []  # coordinates of corners
-    cindices = []  # indices of corners
-    cdist = []  # distances to corner
-
-    # below store indices and coordinates of 8 nearby corners
-
-    cindices.append((int((coord[0] - origin[0]) / deltas[0]),
-                    int((coord[1] - origin[1]) / deltas[1]),
-                    int((coord[2] - origin[2]) / deltas[0])))
-    ci0,ci1,ci2 = cindices[0] #To reduce future index lookups.
     
-    ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((ci0 + 1, ci1,
-                    ci2))
-    ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((ci0, ci1 + 1,
-                    ci2))
-    ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((ci0, ci1, ci2
-                    + 1))
-    ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((ci0 + 1, ci1 + 1,
-                    ci2))
-    ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((ci0, ci1, ci2
-                    + 1))
-    ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((ci0 + 1, ci1, ci2
-                    + 1))
-    ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    cindices.append((ci0 + 1, ci1 + 1,
-                    ci2 + 1))
-    ccrd.append(getcoordfromindices(cindices[-1], origin, deltas))
-    totalweight = 0.0
-    weights = []
-    exactindex = -1
-    for (i, crd) in enumerate(ccrd):
-        if crd == coord:
-            exactindex = i
-    if exactindex > -1:
-        weights = [0.0 for i in range(8)]
-        weights[exactindex] = 1.0
-        totalweight = 1.0
-    else:
-        for crd in ccrd:  # coordinates of corners
-            myweight = ((coord[0] - crd[0]) ** 2 + (coord[1] - crd[1])
-                        ** 2 + (coord[2] - crd[2]) ** 2) ** -0.5
-            weights.append(myweight)
-            totalweight += myweight
-    normweights = [weight / totalweight for weight in weights]
+    #output = np.empty(indices[0].shape)
+    x0i = int((coord[0] - origin[0]) / deltas[0])
+    y0i = int((coord[1] - origin[1]) / deltas[1])
+    z0i = int((coord[2] - origin[2]) / deltas[2])
+
+    
+    x0 = x0i * deltas[0] + origin[0]
+    y0 = y0i * deltas[1] + origin[1]
+    z0 = z0i * deltas[2] + origin[2]
+
+    x1 = x0 + 1
+    y1 = y0 + 1
+    z1 = z0 + 1
+
+    #Check if xyz1 is beyond array boundary:
+    #x1[np.where(x1==input_array.shape[0])] = x0.max()
+    #y1[np.where(y1==input_array.shape[1])] = y0.max()
+    #z1[np.where(z1==input_array.shape[2])] = z0.max()
+
+    dx = coord[0] - x0
+    dy = coord[1] - y0
+    dz = coord[2] - z0
+    
+    normweights = ((1-dx)*(1-dy)*(1-dz),\
+                   dx*(1-dy)*(1-dz),\
+                   (1-dx)*dy*(1-dz),\
+                   (1-dx)*(1-dy)*dz,\
+                   dx*(1-dy)*dz,\
+                   (1-dx)*dy*dz,\
+                   dx*dy*(1-dz),\
+                   dx*dy*dz)
+
+    cindices = ((x0i,y0i,z0i),
+             (x0i+1,y0i,z0i),
+             (x0i,y0i+1,z0i),
+             (x0i,y0i,z0i+1),
+             (x0i+1,y0i,z0i+1),
+             (x0i,y0i+1,z0i+1),
+             (x0i+1,y0i+1,z0i),
+             (x0i+1,y0i+1,z0i+1))
     return (normweights, cindices)
 
 # <codecell>
@@ -549,4 +548,19 @@ Calculates the radial distribution function about a point using the 3d distribut
         gr.append(shellintegral(rad, subdelta, coord))
 
     return (radii, gr)
+
+# <markdowncell>
+
+# Notebook Testing below
+
+# <codecell>
+
+#if isnotebook:
+#    griddata = dx2Grid('tests/data/dxfiles/AlaDP_3DRISM_smallbuffer.dx.gz')
+
+# <codecell>
+
+#if isnotebook:
+#    %timeit griddata.getvalue([1,1,1])
+#    print griddata.getvalue([1,1,1])
 

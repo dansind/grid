@@ -1,8 +1,21 @@
-# Note to self:
-# After changes: 
-   setup appropriate test in grid/grid_test.py
-   modify CHANGES.txt, setup.py; git add commit, push; pip setup.py upload
+# Dan's note to self:
+   * setup appropriate test in grid/grid_test.py
+   * update CHANGES.txt
+   * update setup.py
+   * git add, commit, push
+   *python setup.py sdist upload
 
+June 11, 2013
+0.1.8
+  1) Significant optimization to linear interpolation (~60% speedup) due to use of trilinear interpolation formula
+  2) Added linear interpolation test (assertion)
+
+June 11, 2013
+0.1.7.1
+  Accidentally left some IPython in.
+Jun 10, 2013
+0.1.7
+  Slight optimizations to interpolation. ~5% speed increase.
 
 May 21, 2013
 0.1.6

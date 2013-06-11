@@ -6,10 +6,13 @@ import os
 datadir = os.path.join(os.path.dirname(grid.__file__),"tests","data")
 dxfilename = os.path.join(datadir, "dxfiles", 
                           "AlaDP_3DRISM_smallbuffer.dx.gz") 
+griddata = grid.dx2Grid(dxfilename)
+
+print "Testing Trilinear interpolation.."
+assert griddata.getvalue([9.0,1.0,1.0]) - 0.609013742553 <  1 * 10**(-10)
+
 # Test 3D->RDF function.
 print "Testing RDF interpolation..."
-griddata = grid.dx2Grid(dxfilename)
-import djsplot as plot
 rdfnearO = griddata.interpRDF([3.6, 6.653, 0.00], 0.1, 10.0) #Carbonyl O
 rdfnearH = griddata.interpRDF([6.737, 6.359, 0], 0.1, 10.0) #NH H
 rdfnearH2 = griddata.interpRDF([2.733, 4.556, 0], 0.1, 10.0) #another NH H
