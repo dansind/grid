@@ -508,10 +508,6 @@ estimate the value at that coordinate
 
 # <codecell>
 
-%timeit mygrid.getvalue([1.0,1.0,1.0]) # Using sumbased approach. Original was ~60 us
-
-# <codecell>
-
 def calcrdf(
     distribution,
     origin,
