@@ -4,6 +4,21 @@ import numpy as np
 import os
 
 datadir = os.path.join(os.path.dirname(grid.__file__),"tests","data")
+
+
+print "Testing reading TINKER guv files.."
+datafilename = os.path.join(datadir,'TKRguv','h2o.guv.sample')
+dists = grid.TKRguv2Grids(datafilename)
+assert len(dists) == 2
+assert 1.1 > dists[0].distribution[31,31,31] > 0.9
+
+
+print "Testing reading UxDATA files.."
+uxdatafilename = os.path.join(datadir,'UxDATAfiles','UVDATA.sample')
+uxdists = grid.data2Grids(uxdatafilename, disttypes=['g','c'])
+assert len(uxdists) == 4
+assert 1.1 > uxdists['O.g'].distribution[31,31,31] > 0.9
+
 dxfilename = os.path.join(datadir, "dxfiles", 
                           "AlaDP_3DRISM_smallbuffer.dx.gz") 
 griddata = grid.dx2Grid(dxfilename)

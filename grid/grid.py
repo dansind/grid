@@ -161,33 +161,37 @@ def dx2Grid(dxfilename):
 
     # for now Ghetto rigged to use old readdx function
 
-    (distributions, origin, deltas, gridcount) = readdx([dxfilename])
-    return Grid(distributions[0], origin, gridcount, deltas)
+    (distribution, origin, deltas, gridcount) = readdx(dxfilename)
+    return Grid(distribution, origin, gridcount, deltas)
 
 # <codecell>
 
-def readdx(filenames):
+def openreadfile(filename):
     '''
-    Reads one or more dx files into memory
-    returns grid data and single 4D array containing dx data [index][xindex][yindex][zindex]
+Open a file for reading.
+Use gzip.open if it's a .gz file.
     '''
+    from gzip import open as gopen
+    if 'gz' in filename:
+        f = gopen(filename,'rb')
+    else:
+        f = open(filename,'r')
+    return(f)    
 
-    import gzip
-    import numpy as np
+# <codecell>
 
-    def opendxfile(filename):
-        if 'gz' in filename:
-            dxfile = gzip.open(filename, 'rb')
-        else:
-            dxfile = open(filename, 'r')
-        return dxfile
-
-    dxfile = opendxfile(filenames[0])
+def readdx(filename):
+    '''
+    Reads dx files into memory.
+    Returns grid data and single 4D array containing dx data [index][xindex][yindex][zindex]
+    and the origin, deltas and gridcounts.
+    '''
+    dxfile = openreadfile(filename)
     dxlines = []
     for i in range(10):  # only need the first few lines to get grid data
         dxlines.append(dxfile.readline())
     dxfile.close()
-    gridcount = []
+    gridcounts = []
     origin = []
     deltas = [0, 0, 0]
     startline = 0
@@ -195,9 +199,9 @@ def readdx(filenames):
         splitline = line.split()
         if len(splitline) > 2:
             if splitline[1] == '1':
-                gridcount.append(int(splitline[5]))
-                gridcount.append(int(splitline[6]))
-                gridcount.append(int(splitline[7]))
+                gridcounts.append(int(splitline[5]))
+                gridcounts.append(int(splitline[6]))
+                gridcounts.append(int(splitline[7]))
 
                 # print "# gridcounts ",gridcount
 
@@ -220,39 +224,161 @@ def readdx(filenames):
                 startline = i + 1
         if startline > 1:
             break
-    distributions = np.array([[[[0.0 for x in range(gridcount[2])]
-                             for y in range(gridcount[1])] for z in
-                             range(gridcount[0])] for w in
-                             range(len(filenames))])
-    gridvolume = deltas[0] * deltas[1] * deltas[2]
+    
+    # Read distribution Values
+    dxfile = openreadfile(filename)
+    dxtext = dxfile.read()
+    dxfile.close()
+    splittext = dxtext.split()
+    del splittext[0:splittext.index('follows') + 1]  # get rid of header text, last word is "follows"
+    floats = []
+    for element in splittext:
+        if len(element) > 0:
+            try:
+                floats.append(float(element))
+            except ValueError:
+                pass
+    
+    # Assign to 3D numpy array
+    assert len(floats) == gridcounts[0]*gridcounts[1]*gridcounts[2]
+    import numpy as np
+    distribution = np.array(floats)
+    distribution = np.reshape(distribution, gridcounts)
 
-    # print "# I have to read",len(filenames)*gridcount[2]*gridcount[1]*gridcount[0],"values."
+    return (distribution, origin, deltas, gridcounts)
 
-    for (i, dxfilename) in enumerate(filenames):
-        dxfile = opendxfile(dxfilename)
-        dxtext = dxfile.read()
-        dxfile.close()
-        splittext = dxtext.split()
-        del splittext[0:splittext.index('follows') + 1]  # get rid of header text, last word is "follows"
-        floats = []
-        for element in splittext:
-            if len(element) > 0:
-                try:
-                    floats.append(float(element))
-                except ValueError:
-                    pass
-        assert len(floats) == gridcount[0]*gridcount[1]*gridcount[2]
-        index = 0
-        for x in range(gridcount[0]):
-            for y in range(gridcount[1]):
-                for z in range(gridcount[2]):
-                    distributions[i][x][y][z] = floats[index]
-                    index += 1  # there's probably a more pythonic way to do this
+# <codecell>
 
-    # print "# corr[0][0][0][0] = ",distributions[0][0][0][0],"[0][-1][-1][-1]=",distributions[0][-1][-1][-1]
-    # distributions=np.array(distributions)
+def readUxDATA(filename, disttypes = ['g']):
+    '''
+    Reads 'UxDATA' (UVDATA or UUDATA) files into memory.
+    Returns dictionary of 3D numpy arrays, and the origin, deltas and gridcounts.
+    Dictionary keys refer to <speciesname>.<distributiontype>
+    
 
-    return (distributions, origin, deltas, gridcount)
+    Since these files contain many distribution types, the type
+    of distributions to keep should be specified. Default 'g' -> g(r)
+
+
+    First line should look something like: 
+    ## <version> <gridcounts> <gridspacing> <number of species>
+    ## 20130619        64     0.5     2
+   
+    '''
+    import numpy as np
+    distfile = openreadfile(filename)
+    filelines = distfile.readlines()
+    linesplit = filelines[0].split()
+    if len(linesplit) != 5:
+        exit("Error! Cannot parse first line of UxDATA file")
+    gridcounts = [int(linesplit[2]) for dim in range(3)]
+    deltas = [float(linesplit[3]) for dim in range(3)]
+    numspecies = int(linesplit[4])
+
+    distcolumns = {}
+    origin = False
+    for line in filelines[:10]: # Should contain at least one label line
+        if 'g(r)' in line:
+            labels = line.split()
+            for disttype in disttypes:
+                for lindex, label in enumerate(labels):
+                    if disttype in label[0] and 'k' not in label:
+                        distcolumns[disttype] = lindex - 1
+        if not origin and '#' not in line:
+            origin = [float(element) for element in line.split()[:3]]
+                        
+    dists = {}
+    for linenum, line in enumerate(filelines):
+        splitline = line.split()
+        if '##<' in line: #New species
+            speciesname = splitline[1]
+            print "Reading species:", speciesname
+            for key in distcolumns.keys():
+                #print key
+                distname = speciesname+'.'+key
+                dists[distname] = []
+                #print distname
+        if "#" not in line and len(splitline) > 2:
+            # Probably a data line
+            for key, colnum in distcolumns.iteritems():
+                distname = speciesname+'.'+key
+                dists[distname].append(float(splitline[colnum]))
+            
+    for key, value in dists.iteritems():
+        assert len(value) == gridcounts[0]*gridcounts[1]*gridcounts[2]
+        myarray = np.array(value)
+        dists[key] = np.reshape(myarray, gridcounts, order='F')
+    return dists, origin, deltas, gridcounts
+#readUxDATA('/Users/sindhikara/Programs/MDF/NewSamples/UVDATA.sample', disttypes='g')
+
+# <codecell>
+
+def data2Grids(uxdatafilename, disttypes=['g']):
+    '''
+    Reads a UxDATA into Grid class objects 
+    '''
+    (distributions, origin, deltas, gridcounts) = readUxDATA(uxdatafilename, disttypes=disttypes)
+    grids = {}
+    for name, dist in distributions.iteritems():
+        grids[name] = Grid(dist, origin, gridcounts, deltas)
+    return grids
+#dists = data2Grids('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/UxDATAfiles/UVDATA.sample', disttypes=['g','c'])
+
+# <codecell>
+
+def readTKRguv(filename):
+    '''
+    Reads TINKER 'guv' file format
+    Returns lists of 3D numpy and the origin, deltas and gridcounts.
+
+
+
+    First two lines should look something like:
+    16.00000000000000         16.00000000000000         16.00000000000000     
+           32           32           32
+   
+    '''
+    print "Reading TINKER style guv file"
+    print "Warning, origin set to default 0.0, 0.0, 0.0"
+    print "Distributions are unlabeled."
+    print "Assuming distributions start on line 8"
+    
+    distfile = openreadfile(filename)
+    filelines = distfile.readlines()
+    
+    sidelengths = [float(element) for element in filelines[0].split()]
+    gridcounts = [int(element) for element in filelines[1].split()]
+    deltas = [sidelengths[dim] / gridcounts[dim] for dim in range(3)]
+    origin = [0.0]*3
+    numspecies = int(filelines[6])
+    print "Found %d species." % (numspecies)
+    datalines = [line.split() for line in filelines[7:]]
+    assert len(datalines) == gridcounts[0]*gridcounts[1]*gridcounts[2]
+    dists = []
+
+    for specnum in range(numspecies):
+        dists.append(np.reshape(np.array([float(dataline[specnum]) for dataline in datalines]),
+                                gridcounts))
+    return dists, origin, deltas, gridcounts
+
+#readTKRguv('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/TKRguv/h2o.guv.sample')
+
+
+# <codecell>
+
+def TKRguv2Grids(filename):
+    '''
+    Reads a TINKER guv into Grid class objects 
+    '''
+
+    (distributions, origin, deltas, gridcounts) = readTKRguv(filename)
+    grids = []
+
+    for dist in distributions:
+        grids.append(Grid(dist, origin, gridcounts, deltas))
+    return grids
+#grids = TKRguv2Grids('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/TKRguv/h2o.guv.sample')
+#grids[0].writedx('delme.dx')
 
 # <codecell>
 
@@ -264,7 +390,7 @@ def printdxfrom1dzfast(
     filename,
     ):
     ''' Print a dx file'''
-
+    print "Deprecated Function"
     f = open(filename, 'w')
     f.write("#DX file from Dan's program\n")
     f.write('object 1 class gridpositions counts {0} {1} {2}\n'.format(gridcounts[0],
@@ -285,45 +411,6 @@ def printdxfrom1dzfast(
 
 # <codecell>
 
-def printdx(
-    values,
-    indices,
-    origin,
-    delta,
-    gridcounts,
-    filename,
-    ):
-    ''' Print a dx file'''
-
-    gridvalues = [0.0] * gridcounts[0] * gridcounts[1] * gridcounts[2]
-    if len(values) != len(gridvalues):
-        exit('error! len(gridvalues) %s != len(values) %s'
-             % (len(gridvalues), len(values)))
-    for (i, value) in enumerate(values):  # warning, this doubles the memory usage
-        gridindex = indices[i][2] + indices[i][1] * gridcounts[2] \
-            + indices[i][0] * gridcounts[2] * gridcounts[1]
-        gridvalues[gridindex] = value
-
-    f = open(filename, 'w')
-    f.write("#DX file from Dan's program\n")
-    f.write('object 1 class gridpositions counts {0} {1} {2}\n'.format(gridcounts[0],
-            gridcounts[1], gridcounts[2]))
-    f.write('origin {0} {1} {2}\n'.format(origin[0], origin[1],
-            origin[2]))
-    f.write('delta {0} 0 0\n'.format(delta[0]))
-    f.write('delta 0 {0} 0\n'.format(delta[1]))
-    f.write('delta 0 0 {0}\n'.format(delta[2]))
-    f.write('object 2 class gridconnections counts {0} {1} {2}\n'.format(gridcounts[0],
-            gridcounts[1], gridcounts[2]))
-    f.write('object 3 class array type double rank 0 items {0} data follows\n'.format(gridcounts[0]
-            * gridcounts[1] * gridcounts[2]))
-    for gridvalue in gridvalues:
-        f.write('{0}\n'.format(gridvalue))
-    f.write('object {0} class field\n'.format(filename))
-    f.close()
-
-# <codecell>
-
 def printdxfrom3d(
     distribution,
     origin,
@@ -331,10 +418,11 @@ def printdxfrom3d(
     gridcounts,
     filename,
     ):
-    ''' print a dx file given a 3d list'''
-
+    ''' Print a dx file given a 3d list
+    This function is used by Grid objects.
+    '''
     f = open(filename, 'w')
-    f.write("#DX file from Dan's program\n")
+    f.write("#DX file from Dan Sindhikara's 'grid' program.\n")
     f.write('object 1 class gridpositions counts {0} {1} {2}\n'.format(gridcounts[0],
             gridcounts[1], gridcounts[2]))
     f.write('origin {0} {1} {2}\n'.format(origin[0], origin[1],
@@ -434,8 +522,7 @@ This subroutine is separated from linearinterpolatevalue to allow
 precomputation of weights and indices.
 
 This is using the formula for Trilinear interpolation
-
-Some optimization done June 10
+Significantly optimized (given typical Python constraints).
     '''
 
     
@@ -557,10 +644,4 @@ Calculates the radial distribution function about a point using the 3d distribut
 
 #if isnotebook:
 #    griddata = dx2Grid('tests/data/dxfiles/AlaDP_3DRISM_smallbuffer.dx.gz')
-
-# <codecell>
-
-#if isnotebook:
-#    %timeit griddata.getvalue([1,1,1])
-#    print griddata.getvalue([1,1,1])
 

@@ -2,8 +2,21 @@
    * setup appropriate test in grid/grid_test.py
    * update CHANGES.txt
    * update setup.py
+   * update MANIFEST.in (if necessary)
+   * python setup.py sdist
+   * test in virtualenv
    * git add, commit, push
-   *python setup.py sdist upload
+   * python setup.py sdist upload
+
+June 19, 2013
+0.2.0
+ * Cleaned up some docstrings
+ * Added openreadfile command to allow reading gzipped files (ending in .gz)
+ * Changed readdx to use only one dx file at a time.
+ * Now using numpy.reshape to convert 1dlist to 3d numpy array. (For distributions)
+ * Now can read UxDATA files (produced from legacy GAMESS-type 3D-RISM code)
+ * Now can read TINKER guv files (produces from legacy TINKER-type 3D-RISM code)
+ * Added gridconvert.py to convert volumetric data files.
 
 June 11, 2013
 0.1.8
