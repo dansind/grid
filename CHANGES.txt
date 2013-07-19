@@ -8,6 +8,13 @@
    * git add, commit, push
    * python setup.py sdist upload
 
+July 19, 2013
+ * Added Accelrys .grd output format
+ * Modified input format of gridconvert.py
+
+July 11th, 2013
+ * Tentative function to MDF-3D-RISM HDF5 distributions 'h5ToGrids'
+
 June 19, 2013
 0.2.0
  * Cleaned up some docstrings

@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# <nbformat>3.0</nbformat>
+
+# <codecell>
+
 #!/usr/bin/python
 
 '''Created by Daniel Sindhikara, sindhikara@gmail.com
@@ -16,7 +21,7 @@ import argparse
 # import matplotlib as plt
 # import pylab as pl
 # import numpy as np
-# import os
+import os
 
 # <codecell>
 
@@ -25,35 +30,62 @@ import argparse
 
 def main():
     parser = \
-        argparse.ArgumentParser(description='Converts volumetric data.'
-                                )
+        argparse.ArgumentParser(description=''+
+                    'Converts volumetric data via grid.py.\n'+
+                    'Currently available formats:\n\n'+
+                    "Input:\n"+
+                    'OpenDX (.dx)\n'+
+                    '3D-RISM TINKER "xuv" style (.guv, .huv, etc)\n'+
+                    '3D-RISM GAMESS "UxDATA" style (UVDATA, VVDATA, etc)\n'+
+                    'MDF 3D-RISM HDF5 "H5" style (coming soon)\n\n'+
+                    'Output:\n'+
+                    'OpenDX (.dx)\n'+
+                    'Accelrys DS grid file (.grd) NOT UHBD grid!!!\n'+
+                    'Input filetypes are determined by file names.')
+    outtypes = ['dx', 'grd']
     parser.add_argument('inputfile', type=str, help='Input volumetric data file')
-    parser.add_argument('-iuvdata', action="store_true", default=False, \
-                        help='Inputfile is UxDATA file.')
-    parser.add_argument('-itguv', action="store_true", default=False, \
-                        help='Inputfile is TINKER guv file.')
-    parser.add_argument('--disttypes', type=str, \
-                         help='Type of distributions to output. E.g. '+\
-                              '"--disttypes g" or "--disttypes gct"',\
-                         default = 'g')
-    
+    parser.add_argument('outtype', type=str, help='Type of output file: %s' % outtypes)
     args = parser.parse_args()
-    print "Will write newfiles as extensions of original filename."
-    
-    if args.iuvdata and args.itguv:
-        exit("Error, pick only one input format!")
-    
-    if args.iuvdata:
-        grids = grid.data2Grids(args.inputfile, disttypes=args.disttypes)
-        for gridname, mygrid in grids.iteritems():
-            outname = args.inputfile + '.' + gridname + '.dx'
-            mygrid.writedx(outname)
-    elif args.itguv:
-        grids = grid.TKRguv2Grids(args.inputfile)
-        for gridnum, mygrid in enumerate(grids):
-            outname = args.inputfile + '.' + str(gridnum) + '.dx'
-            mygrid.writedx(outname)
 
+    if args.outtype not in outtypes:
+        exit("Error! Output type not recognized. Choose from %s" % outtypes)
+        
+    if not os.path.isfile(args.inputfile):
+        exit("Error! Input file not found.")
+    
+    # Read
+    intypes = ['dx', 'uv', 'DATA']
+    if '.dx' in args.inputfile:
+        print "Reading OpenDX input"
+        #Contains only one distribution
+        mygrids = {'.' : grid.dx2Grid(args.inputfile)}
+        
+    elif args.inputfile[-2:] == 'uv':
+        print "Reading TINKER xuv input"
+        ## Temporarily try 2.7+/3.0+
+        #my = {key: value for (key, value) in sequence}
+        # Using Python 2.6 compatible "dictionary comprehension"
+        mygrids = dict(('%d.' % (i+1), mygrid) for (i, mygrid) in \
+            enumerate(grid.TKRguv2Grids(args.inputfile)))
+
+    elif "DATA" in args.inputfile:
+        print "Reading UxDATA input"
+        mygrids = grid.data2Grids(args.inputfile) # Already a dictionary
+        for key in mygrids.keys():
+            # Modify keys to be used as output filenames
+            mygrids['%s.' % key] = mygrids.pop(key)
+    
+    # Write
+    if args.outtype == 'dx':
+        print "Outputting .dx file(s)"
+        for key, mygrid in mygrids.iteritems():
+            mygrid.writedx('%sdx' % key)
+      
+    elif args.outtype == 'grd':
+        print "Outputting Accelrys DS .grd file(s)"
+        for key, mygrid in mygrids.iteritems():
+            mygrid.writegrd('%sgrd' % key)
+    
 
 if __name__ == '__main__':
     main()

@@ -16,3 +16,9 @@ Typical usage often looks like this::
     mygrid = grid.dx2Grid("mydxfilename")
 
 
+Some files can be converted now using gridconvert.py:
+
+    gridconvert.py mydxfile.dx grd
+
+Will yield an Accelrys DS .grd file
+

@@ -3,9 +3,6 @@
 
 # <codecell>
 
-
-# <codecell>
-
 #!/usr/bin/python
 
 '''
@@ -57,6 +54,9 @@ Contains volumetric data
 
     def writedx(self, filename):
         printdxfrom3d(self.distribution, self.origin, self.deltas,
+                      self.gridcount, filename)
+    def writegrd(self, filename):
+        printgrd(self.distribution, self.origin, self.deltas,
                       self.gridcount, filename)
 
     def nearestgridindices(self, coord):
@@ -382,6 +382,49 @@ def TKRguv2Grids(filename):
 
 # <codecell>
 
+def h5ToGrids(h5filename):
+    '''
+Reads distributions from an MDF hdf5 (h5) file into a dictionary
+of Grid class objects.
+Returns list of dictionaries:
+
+gridlist[speciesindex]["distributiontype"] = GridObject
+
+    '''
+    import tables
+    h5file = tables.openFile(h5filename)
+    print "Warning. Origin will be automatically set to 0,0,0 (not read)"
+    print "MDF 3D-RISM HDF5 formatting is in flux (and so is this function)."
+
+    
+    #Get universal parameters
+    gridcounts = h5file.root.parameters.gridsize[:]
+    boxdims = h5file.root.parameters.boxsize[:]
+    deltas = [boxdims[dim]/gridcounts[dim] for dim in range(3)]
+    origin = [0.0,0.0,0.0]
+    numspecies = False
+    
+    for key, value in h5file.root._v_children.iteritems():
+        #print "key (in childen) is ",key
+        if "uv" in key:
+            print key
+            if not numspecies:
+                numspecies = len(value)
+                gridlist = [{}]*numspecies
+                print "Found %d species." % (numspecies)
+                
+            # There is one of each distribution type for each site (e.g. guv H, and guv O)
+            for specnum, dist in enumerate(value[:]):
+                assert len(dist) == gridcounts[0] * gridcounts[1] * gridcounts[2]
+                threeddist = dist.reshape(gridcounts)
+                gridlist[specnum][key] = Grid(threeddist, origin, gridcounts, deltas)
+    return gridlist
+
+#gridlist = h5ToGrids('/Users/sindhikara/Desktop/SequoiaHome/Programs/mdfsuite/test/1PLX/1PLX.h5')
+#gridlist[0]['guv'].writedx('test.dx')
+
+# <codecell>
+
 def printdxfrom1dzfast(
     values,
     origin,
@@ -440,6 +483,44 @@ def printdxfrom3d(
                 f.write('{0}\n'.format(distribution[i][j][k]))
     f.write('object {0} class field\n'.format(filename))
     f.close()
+
+# <codecell>
+
+def printgrd(
+    distribution,
+    origin,
+    deltas,
+    gridcounts,
+    filename,
+    ):
+    ''' Print a .grd file readable by Accelrys DS given a 3d list.
+    Note: This is not UHBD .grd format!!
+    This function is used by Grid objects.
+    '''
+    boxdims = [(gridcounts[dim]-1)*deltas[dim] for dim in range(3)]
+    f = open(filename, 'w')
+    f.write("Volumetric data written by grid.py.\n")
+    f.write('(1p,e12.5)\n')
+    f.write('%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n' % (boxdims[0],
+                                    boxdims[1], boxdims[2],
+                                    90.0, 90.0, 90.0))
+    f.write('%5d %5d %5d\n' % (gridcounts[0]-1, gridcounts[1]-1, gridcounts[2]-1))
+    
+    #pleft and pright are number of grid points left or right of 0,0,0
+    pleft = [ origin[dim] / deltas[dim] for dim in range(3)]
+    pright = [gridcounts[dim] + pleft[dim] - 2 for dim in range(3)]
+
+    # First number (1 or 3) represents fast variable (x or z)
+    f.write('    1 %6d %6d %6d %6d %6d %6d\n' % (pleft[0], pright[0], pleft[1], pright[1], pleft[2], pright[2]))
+    for z in range(gridcounts[2]):
+        for y in range(gridcounts[1]):
+            for x in range(gridcounts[0]):
+                f.write('%12.5E\n' % (distribution[x][y][z]))
+    f.close()
+# Output is unreadable by VMD and Chimera. Maybe a mistake in the instructions?
+#griddata = dx2Grid('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/dxfiles/AlaDP_3DRISM_smallbuffer.dx.gz')
+#griddata = dx2Grid('/Users/sindhikara/Desktop/Data/RismMap/1L2Y/1L2Y.O.1.dx')
+#griddata.writegrd('DanTest.grd')
 
 # <codecell>
 
