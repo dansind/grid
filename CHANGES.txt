@@ -8,6 +8,9 @@
    * git add, commit, push
    * python setup.py sdist upload
 
+July 29, 2013
+ * Removed tables requirement (not all users need tables)
+
 July 19, 2013
  * Added Accelrys .grd output format
  * Modified input format of gridconvert.py
