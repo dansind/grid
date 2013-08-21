@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# <nbformat>3.0</nbformat>
-
-# <codecell>
-
 #!/usr/bin/python
 
 '''Created by Daniel Sindhikara, sindhikara@gmail.com
@@ -17,16 +12,7 @@ from __future__ import division
 import grid.grid as grid
 import sys
 import argparse
-# from math import *
-# import matplotlib as plt
-# import pylab as pl
-# import numpy as np
 import os
-
-# <codecell>
-
-
-# <codecell>
 
 def main():
     parser = \
