@@ -18,6 +18,7 @@ import os
 
 # <codecell>
 
+
 #import sys
 #isnotebook ='py' not in sys.argv[0]
 #if isnotebook: 
@@ -26,7 +27,6 @@ import os
 # <codecell>
 
 class Grid:
-
     '''
 Contains volumetric data
     '''
@@ -394,34 +394,33 @@ gridlist[speciesindex]["distributiontype"] = GridObject
     import tables
     h5file = tables.openFile(h5filename)
     print "Warning. Origin will be automatically set to 0,0,0 (not read)"
-    print "MDF 3D-RISM HDF5 formatting is in flux (and so is this function)."
 
-    
     #Get universal parameters
-    gridcounts = h5file.root.parameters.gridsize[:]
-    boxdims = h5file.root.parameters.boxsize[:]
-    deltas = [boxdims[dim]/gridcounts[dim] for dim in range(3)]
+    gridcounts = h5file.root.parameters_uv.num_grid_points[:]
+    deltas = [h5file.root.parameters_uv.grid_spacing.read()]*3
     origin = [0.0,0.0,0.0]
-    numspecies = False
-    
+    speciesnames = h5file.root.parameters_vv.solvent.element_0.names[:]
+    grids = dict((speciesname, {}) for speciesname in speciesnames)
     for key, value in h5file.root._v_children.iteritems():
+        # 
         #print "key (in childen) is ",key
-        if "uv" in key:
-            print key
-            if not numspecies:
-                numspecies = len(value)
-                gridlist = [{}]*numspecies
-                print "Found %d species." % (numspecies)
-                
-            # There is one of each distribution type for each site (e.g. guv H, and guv O)
-            for specnum, dist in enumerate(value[:]):
+        if "uv" in key[1:] and len(key) < 5:
+            # This leave is an array of distributions
+            
+            # key[1:] is to avoid uvv
+            # len(key) < 5 is to avoid /parameters_uv/
+            print "Reading:", key
+            value = value[:].T
+            for specnum, dist in enumerate(value):
                 assert len(dist) == gridcounts[0] * gridcounts[1] * gridcounts[2]
                 threeddist = dist.reshape(gridcounts)
-                gridlist[specnum][key] = Grid(threeddist, origin, gridcounts, deltas)
-    return gridlist
+                grids[speciesnames[specnum]][key] = Grid(threeddist, origin, gridcounts, deltas)
+    return grids
 
-#gridlist = h5ToGrids('/Users/sindhikara/Desktop/SequoiaHome/Programs/mdfsuite/test/1PLX/1PLX.h5')
-#gridlist[0]['guv'].writedx('test.dx')
+#gridlist = h5ToGrids('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/MDF_H5/tip3p.uv.h5')
+
+# <codecell>
+
 
 # <codecell>
 

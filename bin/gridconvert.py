@@ -37,7 +37,7 @@ def main():
                     'OpenDX (.dx)\n'+
                     '3D-RISM TINKER "xuv" style (.guv, .huv, etc)\n'+
                     '3D-RISM GAMESS "UxDATA" style (UVDATA, VVDATA, etc)\n'+
-                    'MDF 3D-RISM HDF5 "H5" style (coming soon)\n\n'+
+                    'MDF 3D-RISM HDF5 "H5" style\n\n'+
                     'Output:\n'+
                     'OpenDX (.dx)\n'+
                     'Accelrys DS grid file (.grd) NOT UHBD grid!!!\n'+
@@ -74,7 +74,15 @@ def main():
         for key in mygrids.keys():
             # Modify keys to be used as output filenames
             mygrids['%s.' % key] = mygrids.pop(key)
+
+    elif ".uv.h5" in args.inputfile:
+        print "Reading MDF .h5 input"
     
+        mygrids = {}
+        for speciesname, dictofgrids in grid.h5ToGrids(args.inputfile).iteritems():
+            for disttype, mygrid in dictofgrids.iteritems():
+                mygrids["%s.%s." % (speciesname, disttype)] = mygrid
+            
     # Write
     if args.outtype == 'dx':
         print "Outputting .dx file(s)"

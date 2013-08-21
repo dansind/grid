@@ -8,6 +8,9 @@
    * git add, commit, push
    * python setup.py sdist upload
 
+August 21, 2013
+ * Added MDF .uv.h5 reader and appropriate parser in gridconvert.py
+
 July 29, 2013
  * Removed tables requirement (not all users need tables)
 
