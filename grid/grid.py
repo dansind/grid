@@ -397,7 +397,7 @@ gridlist[speciesindex]["distributiontype"] = GridObject
 
     #Get universal parameters
     gridcounts = h5file.root.parameters_uv.num_grid_points[:]
-    deltas = [h5file.root.parameters_uv.grid_spacing.read()]*3
+    deltas = [float(h5file.root.parameters_uv.grid_spacing.read())]*3
     origin = [0.0,0.0,0.0]
     speciesnames = h5file.root.parameters_vv.solvent.element_0.names[:]
     grids = dict((speciesname, {}) for speciesname in speciesnames)
