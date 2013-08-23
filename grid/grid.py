@@ -393,27 +393,27 @@ gridlist[speciesindex]["distributiontype"] = GridObject
     '''
     import tables
     h5file = tables.openFile(h5filename)
-    print "Warning. Origin will be automatically set to 0,0,0 (not read)"
+    print "Warning. Box will be centered on 0,0,0 (not read)"
 
     #Get universal parameters
     gridcounts = h5file.root.parameters_uv.num_grid_points[:]
-    deltas = [float(h5file.root.parameters_uv.grid_spacing.read())]*3
-    origin = [0.0,0.0,0.0]
+    deltas = [h5file.root.parameters_uv.grid_spacing.read()]*3
+    origin = [-deltas[dim]*gridcounts[dim]*0.5 for dim in range(3)]
+
     speciesnames = h5file.root.parameters_vv.solvent.element_0.names[:]
     grids = dict((speciesname, {}) for speciesname in speciesnames)
     for key, value in h5file.root._v_children.iteritems():
         # 
         #print "key (in childen) is ",key
         if "uv" in key[1:] and len(key) < 5:
-            # This leave is an array of distributions
-            
+            # This leave is an array of distributions           
             # key[1:] is to avoid uvv
             # len(key) < 5 is to avoid /parameters_uv/
             print "Reading:", key
             value = value[:].T
             for specnum, dist in enumerate(value):
                 assert len(dist) == gridcounts[0] * gridcounts[1] * gridcounts[2]
-                threeddist = dist.reshape(gridcounts)
+                threeddist = np.reshape(dist,gridcounts).T
                 grids[speciesnames[specnum]][key] = Grid(threeddist, origin, gridcounts, deltas)
     return grids
 

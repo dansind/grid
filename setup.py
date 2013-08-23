@@ -10,7 +10,7 @@ config = {
     #'url':'https://github.com/dansind/grid',
     #'download_url': 'https://github.com/dansind/grid/tarball/master',
     'author_email': 'sindhikara@gmail.com',
-    'version': '0.4.2',
+    'version': '0.4.3',
     'install_requires': ['numpy', 'argparse', ], #
     #'py_modules': ['grid'], 
     'packages': ["grid","grid.tests"],
