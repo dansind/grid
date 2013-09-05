@@ -98,6 +98,7 @@ Contains volumetric data
         coord,
         delta,
         limit,
+        concentration = False # If not False, print coordination number
         ):
         '''
         Given 3D cartesian coordinate (list-like object of floats),
@@ -114,13 +115,20 @@ Contains volumetric data
         spherepoints = [[float(element) for element in line.split()]
                         for line in open(spherefilename).readlines()]
         rdf = []
+        volints = [0.]
         for radius in np.arange(0, limit, delta):
             mysum = 0
             for point in spherepoints:
                 mysum += self.getvalue([point[dim] * radius
                         + coord[dim] for dim in range(3)])
             rdf.append(float(mysum / len(spherepoints)))
-        return rdf
+            if radius > 0:
+                volints.append(volints[-1] + 4./3. * 3.14159 * (radius**3 - (radius-delta)**3))
+        if not concentration:
+            return rdf
+        else:
+            coordnums = [volint * concentration for volint in volints]
+            return rdf, coordnums
 
 # <codecell>
 

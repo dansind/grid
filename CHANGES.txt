@@ -7,6 +7,9 @@
    * test in virtualenv
    * git add, commit, push
    * python setup.py sdist upload
+September 5, 2013
+ * Added coordination number option in RDFfromDX.py by adding extra argument (concentration)
+
 August 23, 2013
  * Fixed grid centering and array reading for .uv.h5 files
 
