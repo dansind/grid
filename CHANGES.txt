@@ -1,12 +1,6 @@
-# Dan's note to self:
-   * setup appropriate test in grid/grid_test.py
-   * update CHANGES.txt
-   * update setup.py
-   * update MANIFEST.in (if necessary)
-   * python setup.py sdist
-   * test in virtualenv
-   * git add, commit, push
-   * python setup.py sdist upload
+Oct 9, 2013
+ * Updated .h5 compatibility due to change in MDF .h5 structure
+
 September 5, 2013
  * Added coordination number option in RDFfromDX.py by adding extra argument (concentration)
 
