@@ -371,12 +371,17 @@ gridlist[speciesindex]["distributiontype"] = GridObject
     '''
     import tables
     h5file = tables.openFile(h5filename)
-    print "Warning. Box will be centered on 0,0,0 (not read)"
+    try: 
+        offset = h5file.root.parameters_uv.coordinates_offset[:]
+    except:
+        offset = [0,0,0]
+        print "No coordinates offset found. Box will be centered on [0.0, 0.0, 0.0]"
+    
 
     #Get universal parameters
     gridcounts = h5file.root.parameters_uv.num_grid_points[:]
     deltas = [h5file.root.parameters_uv.grid_spacing.read()]*3
-    origin = [-deltas[dim]*gridcounts[dim]*0.5 for dim in range(3)]
+    origin = [-deltas[dim]*gridcounts[dim]*0.5+offset[dim] for dim in range(3)]
 
     speciesnames = h5file.root.data_vv.parameters_vv.solvent.element_0.names[:]
     grids = dict((speciesname, {}) for speciesname in speciesnames)
