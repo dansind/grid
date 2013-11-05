@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-# <nbformat>3.0</nbformat>
-
-# <codecell>
 
 #!/usr/bin/python
 
@@ -15,16 +12,6 @@ Copyright 2013 Daniel Jon Sindhikara
 from __future__ import division
 import numpy as np
 import os
-
-# <codecell>
-
-
-#import sys
-#isnotebook ='py' not in sys.argv[0]
-#if isnotebook: 
-#    print "Running as IPython notebook"
-
-# <codecell>
 
 class Grid:
     '''
@@ -130,7 +117,6 @@ Contains volumetric data
             coordnums = [volint * concentration for volint in volints]
             return rdf, coordnums
 
-# <codecell>
 
 def rdf23dgrid(
     rdf,
@@ -160,7 +146,6 @@ def rdf23dgrid(
             mydist[distindex] = myrdf
     return Grid(mydist, gridorigin, gridcount, [griddelta] * 3)
 
-# <codecell>
 
 def dx2Grid(dxfilename):
     '''
@@ -172,7 +157,6 @@ def dx2Grid(dxfilename):
     (distribution, origin, deltas, gridcount) = readdx(dxfilename)
     return Grid(distribution, origin, gridcount, deltas)
 
-# <codecell>
 
 def openreadfile(filename):
     '''
@@ -186,7 +170,6 @@ Use gzip.open if it's a .gz file.
         f = open(filename,'r')
     return(f)    
 
-# <codecell>
 
 def readdx(filename):
     '''
@@ -255,7 +238,6 @@ def readdx(filename):
 
     return (distribution, origin, deltas, gridcounts)
 
-# <codecell>
 
 def readUxDATA(filename, disttypes = ['g']):
     '''
@@ -317,9 +299,6 @@ def readUxDATA(filename, disttypes = ['g']):
         myarray = np.array(value)
         dists[key] = np.reshape(myarray, gridcounts, order='F')
     return dists, origin, deltas, gridcounts
-#readUxDATA('/Users/sindhikara/Programs/MDF/NewSamples/UVDATA.sample', disttypes='g')
-
-# <codecell>
 
 def data2Grids(uxdatafilename, disttypes=['g']):
     '''
@@ -330,9 +309,7 @@ def data2Grids(uxdatafilename, disttypes=['g']):
     for name, dist in distributions.iteritems():
         grids[name] = Grid(dist, origin, gridcounts, deltas)
     return grids
-#dists = data2Grids('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/UxDATAfiles/UVDATA.sample', disttypes=['g','c'])
 
-# <codecell>
 
 def readTKRguv(filename):
     '''
@@ -369,10 +346,6 @@ def readTKRguv(filename):
                                 gridcounts))
     return dists, origin, deltas, gridcounts
 
-#readTKRguv('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/TKRguv/h2o.guv.sample')
-
-
-# <codecell>
 
 def TKRguv2Grids(filename):
     '''
@@ -385,10 +358,7 @@ def TKRguv2Grids(filename):
     for dist in distributions:
         grids.append(Grid(dist, origin, gridcounts, deltas))
     return grids
-#grids = TKRguv2Grids('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/TKRguv/h2o.guv.sample')
-#grids[0].writedx('delme.dx')
 
-# <codecell>
 
 def h5ToGrids(h5filename):
     '''
@@ -425,12 +395,7 @@ gridlist[speciesindex]["distributiontype"] = GridObject
                 grids[speciesnames[specnum]][key] = Grid(threeddist, origin, gridcounts, deltas)
     return grids
 
-#gridlist = h5ToGrids('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/MDF_H5/tip3p.uv.h5')
 
-# <codecell>
-
-
-# <codecell>
 
 def printdxfrom1dzfast(
     values,
@@ -459,7 +424,6 @@ def printdxfrom1dzfast(
     f.write('object {0} class field\n'.format(filename))
     f.close()
 
-# <codecell>
 
 def printdxfrom3d(
     distribution,
@@ -491,7 +455,6 @@ def printdxfrom3d(
     f.write('object {0} class field\n'.format(filename))
     f.close()
 
-# <codecell>
 
 def printgrd(
     distribution,
@@ -524,12 +487,6 @@ def printgrd(
             for x in range(gridcounts[0]):
                 f.write('%12.5E\n' % (distribution[x][y][z]))
     f.close()
-# Output is unreadable by VMD and Chimera. Maybe a mistake in the instructions?
-#griddata = dx2Grid('/Users/sindhikara/Dropbox/scripts/modules/Grid/grid/tests/data/dxfiles/AlaDP_3DRISM_smallbuffer.dx.gz')
-#griddata = dx2Grid('/Users/sindhikara/Desktop/Data/RismMap/1L2Y/1L2Y.O.1.dx')
-#griddata.writegrd('DanTest.grd')
-
-# <codecell>
 
 def getcoordfromindices(indices, origin, deltas):
     '''
@@ -538,15 +495,12 @@ Returns coordinates as a length 3 list of floats.
     '''
     return [float(indices[i]) * deltas[i] + origin[i] for i in range(3)]
 
-# <codecell>
 
 def getindicesfromcoord(coord, origin, deltas):
     indices = []
     for i in range(3):
         indices.append(int((coord[i] - origin[i]) / deltas[i] + 0.5))
     return indices
-
-# <codecell>
 
 def precomputeshellindices(maxindex):
     '''return a list of 3d lists containing the indices in successive search shells
@@ -561,21 +515,15 @@ at index radius
     shellindices = [[[0, 0, 0]]]
     for index in range(1, maxindex):
 
-        # range[0]
-
         indicesinthisshell = []
         for i in range(-index, index + 1):
             for j in range(-index, index + 1):
                 for k in range(-index, index + 1):
-
-                    # print "math.sqrt(i*i + j*j + k*k))=",math.sqrt(i*i + j*j + k*k),"index = ",index
-
                     if int(sqrt(i * i + j * j + k * k)) == index:  # I think this will miss some
                         indicesinthisshell.append((i, j, k))
         shellindices.append(tuple(indicesinthisshell))
     return tuple(shellindices)
 
-# <codecell>
 
 def createprecomputedindicesjson(numshells=40):
     '''
@@ -590,7 +538,6 @@ stores a local file called shells.json
     dump(shellindices, f)
     f.close()
 
-# <codecell>
 
 def readshellindices():
     import os
@@ -600,7 +547,6 @@ def readshellindices():
     shellindices = load(f)
     return shellindices
 
-# <codecell>
 
 def getlinearweightsandindices(origin, deltas, coord):
     '''
@@ -614,7 +560,6 @@ Significantly optimized (given typical Python constraints).
     '''
 
     
-    #output = np.empty(indices[0].shape)
     x0i = int((coord[0] - origin[0]) / deltas[0])
     y0i = int((coord[1] - origin[1]) / deltas[1])
     z0i = int((coord[2] - origin[2]) / deltas[2])
@@ -656,7 +601,6 @@ Significantly optimized (given typical Python constraints).
              (x0i+1,y0i+1,z0i+1))
     return (normweights, cindices)
 
-# <codecell>
 
 def linearinterpolatevalue(
     distribution,
@@ -680,7 +624,6 @@ estimate the value at that coordinate
             return False
     return value
 
-# <codecell>
 
 def calcrdf(
     distribution,
@@ -724,12 +667,5 @@ Calculates the radial distribution function about a point using the 3d distribut
 
     return (radii, gr)
 
-# <markdowncell>
 
-# Notebook Testing below
-
-# <codecell>
-
-#if isnotebook:
-#    griddata = dx2Grid('tests/data/dxfiles/AlaDP_3DRISM_smallbuffer.dx.gz')
 
