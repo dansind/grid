@@ -396,7 +396,8 @@ gridlist[speciesindex]["distributiontype"] = GridObject
             value = value[:].T
             for specnum, dist in enumerate(value):
                 assert len(dist) == gridcounts[0] * gridcounts[1] * gridcounts[2]
-                threeddist = np.reshape(dist,gridcounts).T
+                threeddist = np.reshape(dist,[gridcounts[2], gridcounts[1], gridcounts[0]]).T
+#                threeddist = np.reshape(dist,gridcounts)
                 grids[speciesnames[specnum]][key] = Grid(threeddist, origin, gridcounts, deltas)
     return grids
 
