@@ -383,7 +383,9 @@ gridlist[speciesindex]["distributiontype"] = GridObject
     deltas = [h5file.root.parameters_uv.grid_spacing.read()]*3
     origin = [-deltas[dim]*gridcounts[dim]*0.5+offset[dim] for dim in range(3)]
 
-    speciesnames = [a for x in h5file.root.data_vv.parameters_vv.solvent for a in x.names]
+    speciesnames = [species for molecule in 
+                    h5file.root.data_vv.parameters_vv.solvent 
+                    for species in molecule.names]
     grids = dict((speciesname, {}) for speciesname in speciesnames)
     for key, value in h5file.root._v_children.iteritems():
         # 

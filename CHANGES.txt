@@ -1,3 +1,6 @@
+Feb 4, 2014
+ * Merged Matsuoka pull request to fix cuboid grid points
+
 Nov 5, 2013
  * Add proper treatment of coordinates_offset parameter of MDF .h5 files
  * Remove notebook comments and intermediate testing

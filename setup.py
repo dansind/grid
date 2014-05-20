@@ -10,15 +10,15 @@ config = {
     #'url':'https://github.com/dansind/grid',
     #'download_url': 'https://github.com/dansind/grid/tarball/master',
     'author_email': 'sindhikara@gmail.com',
-    'version': '0.6',
+    'version': '0.7',
     'install_requires': ['numpy', 'argparse', ], #
-    #'py_modules': ['grid'], 
+    #'py_modules': ['grid'],
     'packages': ["grid","grid.tests"],
-    'package_data': {'grid': ['data/shells.json', 'data/points/*', "tests/data/dxfiles/*"], 
+    'package_data': {'grid': ['data/shells.json', 'data/points/*', "tests/data/dxfiles/*"],
                      "grid.tests": ["data/dxfiles/*", "data/UxDATAfiles/*", "data/TKRguv/*"]},
     'scripts': ["grid/tests/grid_tests.py", "bin/RDFfromDX.py", "bin/gridconvert.py"],
     'license': 'LGPL',
     'name': 'grid'
 }
 
-setup(**config)  
+setup(**config)
