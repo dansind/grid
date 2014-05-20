@@ -1,3 +1,6 @@
+May 20, 2014
+ * Merge Sugita pull request to enable multiple solvents for MDF HDF5 files
+
 Feb 4, 2014
  * Merged Matsuoka pull request to fix cuboid grid points
 
